@@ -4,6 +4,8 @@ const applicantInfo = Joi.object({
     firstName: Joi.string().required(),
     lastName: Joi.string().required(),
     cell: Joi.string().required(),
+    user_Email: Joi.string().email().required(),
+    user_Password: Joi.string().required(),
     sector: Joi.string().required(),
     city: Joi.string().required(),
     district: Joi.string().required(),

@@ -18,6 +18,7 @@ describe('User tests', ()=>{
                 firstName: "Whatever",
                 lastName: "Whatever",
                 cell: "Whatever",
+                user_Email: "isbernard2001@gmail.com",
                 sector: "Whatever",
                 city: "Whatever",
                 district: "Whatever",
