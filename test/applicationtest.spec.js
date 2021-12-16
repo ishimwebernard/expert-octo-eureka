@@ -9,11 +9,11 @@ import { exist } from 'joi';
 
 chai.use(chaiHttp);
 chai.should();
-
+const today = new Date();
 describe('User tests', ()=>{
-    it('Should Show the ', (done)=>{
+    it('Should Send the application ', (done)=>{
         chai.request(app)
-            .post('/application')
+            .post('/application/sendapplication')
             .send({
                 firstName: "Whatever",
                 lastName: "Whatever",
@@ -34,7 +34,7 @@ describe('User tests', ()=>{
                 employed: "Whatever",
                 company_name: "Raster",
                 supervisor_address: "Whatever",
-                supervisor_email: "isbernard2001@gmail.com",
+                supervisor_email: "isbernar345d2001@gmail.com",
                 highschool: "Whatever",
                 highschool_address: "Whatever",
                 highschool_diploma: "Whatever",
@@ -61,13 +61,15 @@ describe('User tests', ()=>{
                 referal_2_company_relationship: "Whatever",
                 cv_link: "Whatever",
                 application_letter_link: "Whatever",
-                payment_receipt_link: "Whatever"
+                payment_receipt_link: "Whatever",
+                user_Password: "jskfgnkjfs"
+              
 
 
             })
             .end((error, response)=>{
-                console.log(response)
-                response.should.have.status(404);
+                console.log(response.body)
+                response.should.have.status(409);
                 done();
             })
     });

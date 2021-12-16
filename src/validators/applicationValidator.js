@@ -1,4 +1,6 @@
 import ApplicationSchema from '../validate_schema/applicationInfo'
+import 'firebase/firestore';
+import firebase from '../../firebase'
 
 class ApplicationValidator{
     static validateApplication = async(req, res, next) => {
@@ -9,5 +11,9 @@ class ApplicationValidator{
             next()
         }
     }
+    static checkIfEmailIsInUse = async(req, res, next) => {
+        firebase.firestore().collection('waitingForAdmissionUsers').document('')
+    }
+
 }
 export default ApplicationValidator;
