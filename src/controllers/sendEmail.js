@@ -1,10 +1,8 @@
 /*eslint-disable*/
 import nodemailer from 'nodemailer';
 import dotenv from 'dotenv';
-import Util from '../helpers/utils';
 dotenv.config();
 
-const util = new Util();
 export  default (message, subject, userEmail) => {
         try{const transporter = nodemailer.createTransport({
                 service: 'gmail',
@@ -19,10 +17,9 @@ export  default (message, subject, userEmail) => {
                 subject: `${subject}`,
                 html: `${message}`
             });
-           
+        return {message: 'Email sent succesfully'}   
     }catch(error){
         const _error = `Failed sending the email to ${userEmail}, Please try again ...`;
-        util.setError(500, _error);
-        return util.send(res);
+        return {error: _error};
     }
 }

@@ -2,8 +2,10 @@ import { async } from "regenerator-runtime";
 import 'firebase/firestore';
 import firebase from '../../firebase.js'
 import { v4 as uuidv4 } from 'uuid';
-var generator = require('generate-password');
+import AdmissionEmailTemplateGenerator from "../emailTemplates/admission.js";
+import sendEmail from "./sendEmail.js";
 
+var generator = require('generate-password');
 require('firebase/auth')
 
 const db = firebase.firestore();
@@ -48,11 +50,10 @@ class Application {
             attendanceReport: {}
         }
        try{
-        const reply = await firebase.auth().createUserWithEmailAndPassword(String(req.body.user_Email), generator.generate({
-            length: 10,
-            numbers: true
-        }));
+           const password = generator.generate({length: 10, numbers: true});
+        const reply = await firebase.auth().createUserWithEmailAndPassword(String(req.body.user_Email), password);
         const settingActiveUser = await db.collection('activeUsers').doc(reply.user.uid).set({ newUserProfile})
+        sendEmail(AdmissionEmailTemplateGenerator({email: req.body.user_Email, password: password}), "Regarding your primecs application", req.body.user_Email)
         return res.status(200).send({data: "User admitted succesfully"})
        }catch(e){
             return res.status(409).send({message: e.message});
