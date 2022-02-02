@@ -53,7 +53,7 @@ class Application {
        try{
            const password = generator.generate({length: 10, numbers: true});
         const reply = await firebase.auth().createUserWithEmailAndPassword(String(req.body.user_Email), password);
-        const settingActiveUser = await db.collection('activeUsers').doc(reply.user.uid).set({ newUserProfile})
+        const settingActiveUser = await db.collection('activeUsers').doc(reply.user.uid).set(newUserProfile)
         sendEmail(AdmissionEmailTemplateGenerator({email: req.body.user_Email, password: password}), "Regarding your primecs application", req.body.user_Email)
         return res.status(200).send({data: "User admitted succesfully"})
        }catch(e){
