@@ -47,7 +47,8 @@ class Application {
             enrolledSubjects: [],
             userSchedule: {},
             lectureVideos: [],
-            attendanceReport: {}
+            attendanceReport: {},
+            name: req.body.userFullName
         }
        try{
            const password = generator.generate({length: 10, numbers: true});
