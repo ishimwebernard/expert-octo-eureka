@@ -14,6 +14,8 @@ const checkEmailInUse = (documentId) => {
     db.collection('waitingForAdmissionUsers').get().then((querySnapshot) => {
         querySnapshot.forEach((doc)=>{
             if(doc.data().user_Email == documentId ){
+                return 1
+            }else{
                 return 0
             }
         })
