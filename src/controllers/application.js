@@ -1,8 +1,12 @@
 import { async } from "regenerator-runtime";
 import 'firebase/firestore';
+import 'firebase/auth';
+
 import firebase from '../../firebase.js'
 import { v4 as uuidv4 } from 'uuid';
 import AdmissionEmailTemplateGenerator from "../emailTemplates/admission.js";
+import RejectionLetterGenerator from "../emailTemplates/rejection.js";
+
 import sendEmail from "./sendEmail.js";
 
 var generator = require('generate-password');
@@ -10,16 +14,19 @@ require('firebase/auth')
 
 const db = firebase.firestore();
 
-const checkEmailInUse = (documentId) => {
-    db.collection('waitingForAdmissionUsers').get().then((querySnapshot) => {
+const checkEmailInUse = async(documentId) => {
+    let emailInUser = false;
+
+    const res = await db.collection('waitingForAdmissionUsers').get().then((querySnapshot) => {
         querySnapshot.forEach((doc)=>{
             if(doc.data().user_Email == documentId ){
-                return 1
-            }else{
-                return 0
+                emailInUser = true
             }
         })
     })
+
+    return emailInUser
+    
 }
 class Application {
    
@@ -32,8 +39,8 @@ class Application {
         const applicationJSON = req.body;
         applicationJSON.dateSent = dateTime;
         const documentId= req.body.user_Email;
-        
-        if(checkEmailInUse(documentId)){
+        const emailInUse = await checkEmailInUse(documentId);
+        if(emailInUse == false){
             const userCreation = await  db.collection('waitingForAdmissionUsers').doc(uuidv4()).set({ ...req.body})
             return res.status(200).send({body: "Application Sent Succesfully"})
         }else{
@@ -44,7 +51,7 @@ class Application {
         }
     }
     static admitApplicant = async(req, res) => {
-        const newUserProfile = {
+        let newUserProfile = {
             email: req.body.user_Email,
             enrolledSubjects: [],
             userSchedule: {},
@@ -52,16 +59,50 @@ class Application {
             attendanceReport: {},
             name: req.body.userFullName
         }
+        console.log('STARTING')
        try{
            const password = generator.generate({length: 10, numbers: true});
-        const reply = await firebase.auth().createUserWithEmailAndPassword(String(req.body.user_Email), password);
-        const settingActiveUser = await db.collection('activeUsers').doc(reply.user.uid).set(newUserProfile)
-        sendEmail(AdmissionEmailTemplateGenerator({email: req.body.user_Email, password: password}), "Regarding your primecs application", req.body.user_Email)
+        const reply = await firebase.auth().createUserWithEmailAndPassword(String(req.body.user_Email), password).then(async(reply)=>{
+                
+        //console.log(reply)
+        newUserProfile = {...newUserProfile, uid: reply.user.uid}
+        console.log(newUserProfile)
+        const settingActiveUser = await db.collection('activeUsers').add(newUserProfile)
+        db.collection('waitingForAdmissionUsers').get().then((qSnap)=>{
+            qSnap.forEach(async(doc)=>{
+                if(doc.data().user_Email == String(req.body.user_Email)){
+                    console.log(doc.id)
+                    await db.collection('waitingForAdmissionUsers').doc(doc.id).delete()
+                    sendEmail(AdmissionEmailTemplateGenerator({email: req.body.user_Email, password: password}), "Regarding your primecs application", req.body.user_Email)
+
+                    console.log('delote')
+                }
+            })
+        })
+        })
+    
         return res.status(200).send({data: "User admitted succesfully"})
        }catch(e){
+           console.log(e)
             return res.status(409).send({message: e.message});
        }
+  
     }
+    static rejectApplicant = async(req,res) => {
+        db.collection('waitingForAdmissionUsers').get().then((qSnap)=>{
+            qSnap.forEach(async(doc)=>{
+                if(doc.data().user_Email == String(req.body.user_Email)){
+                    console.log(doc.id)
+                    await db.collection('waitingForAdmissionUsers').doc(doc.id).delete()
+                    sendEmail(RejectionLetterGenerator(),"Regarding your primecs application", req.body.user_Email)
+                }
+            })
+            return res.send('Applicant rejeted succesfully')
+        }).catch((e)=>{
+            return res.send('Something went wrong')
+        })
+    }
+
   
 }
 export default Application;
